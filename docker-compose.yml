@@ -1,0 +1,28 @@
+version: '3.3'
+services:
+  web:
+    image: tautiz/web4study
+    volumes:
+      - ./:/var/www/html/
+    ports:
+      - 80:80
+    environment:
+      APACHE_SERVER_NAME: web4study.local
+      APPLICATION_ENV: development
+
+  db:
+    image: mysql:latest
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    ports:
+      - 3306:3306
+    volumes:
+      - mysqldata:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: akademija
+      MYSQL_USER: devuser
+      MYSQL_PASSWORD: devpass
+volumes:
+  mysqldata:
