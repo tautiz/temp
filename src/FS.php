@@ -4,15 +4,23 @@ namespace Appsas;
 
 class FS
 {
-    private string $failoTurinys;
+    private string $fileContent;
 
-    public function __construct(private string $fileName)
+    public function __construct(private ?string $fileName = null)
     {
-        $this->failoTurinys = file_get_contents($this->fileName);
     }
 
-    public function getFailoTurinys(): string
+    public function getFileContent(): string
     {
-        return $this->failoTurinys;
+        if (empty($this->fileContent)) {
+            $this->fileContent = file_get_contents($this->fileName);
+        }
+
+        return $this->fileContent;
+    }
+
+    public function setFile(string $fileName): void
+    {
+        $this->fileName = $fileName;
     }
 }

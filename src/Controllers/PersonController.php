@@ -2,12 +2,12 @@
 
 namespace Appsas\Controllers;
 
+use Appsas\App;
 use Appsas\Database;
 use Appsas\FS;
 use Appsas\Request;
 use Appsas\Response;
 use Appsas\Validator;
-use Appsas\Configs;
 
 class PersonController extends BaseController
 {
@@ -15,8 +15,7 @@ class PersonController extends BaseController
 
     public function list(Request $request): Response
     {
-        $config = new Configs();
-        $db = new Database($config);
+        $db = App::resolve(Database::class);
 
         $kiekis = $request->get('amount', 10);
         $orderBy = $request->get('orderby', 'id');
@@ -45,10 +44,9 @@ ORDER BY ' . $orderBy . ' DESC LIMIT ' . $kiekis);
         Validator::numeric((int)$request->get('code'));
         Validator::asmensKodas((int)$request->get('code'));
 
-        $conf = new Configs();
-        $conn = new Database($conf);
+        $db = App::resolve(Database::class);
 
-        $conn->query(
+        $db->query(
             "INSERT INTO `persons` (`first_name`, `last_name`, `code`)
                     VALUES (:first_name, :last_name, :code)",
             $request->all()
@@ -65,8 +63,7 @@ ORDER BY ' . $orderBy . ' DESC LIMIT ' . $kiekis);
         Validator::numeric($kuris);
         Validator::min($kuris, 1);
 
-        $conf = new Configs();
-        $db = new Database($conf);
+        $db = App::resolve(Database::class);
 
         $db->query("DELETE FROM `persons` WHERE `id` = :id", ['id' => $kuris]);
 
@@ -75,8 +72,7 @@ ORDER BY ' . $orderBy . ' DESC LIMIT ' . $kiekis);
 
     public function edit(Request $request): Response
     {
-        $conf = new Configs();
-        $db = new Database($conf);
+        $db = App::resolve(Database::class);
 
         $person = $db->query("SELECT * FROM `persons` WHERE `id` = :id", ['id' => $request->get('id')])[0];
 
@@ -91,8 +87,7 @@ ORDER BY ' . $orderBy . ' DESC LIMIT ' . $kiekis);
         Validator::numeric($request->get('code'));
         Validator::asmensKodas($request->get('code'));
 
-        $conf = new Configs();
-        $db = new Database($conf);
+        $db = App::resolve(Database::class);
 
         $db->query(
             "UPDATE `persons` 
@@ -111,8 +106,7 @@ ORDER BY ' . $orderBy . ' DESC LIMIT ' . $kiekis);
 
     public function show(Request $request): Response
     {
-        $conf = new Configs();
-        $db = new Database($conf);
+        $db = App::resolve(Database::class);
 
         $person = $db->query("SELECT * FROM `persons` WHERE `id` = :id", ['id' => $request->get('id')])[0];
 
@@ -120,18 +114,20 @@ ORDER BY ' . $orderBy . ' DESC LIMIT ' . $kiekis);
     }
 
     /**
-     * @param mixed $asmuo
+     * @param mixed $person
      * @return string
      */
-    protected function generatePersonRow(array $asmuo): string
+    protected function generatePersonRow(array $person): string
     {
-        $failoSistema = new FS('../src/html/person/person_row.html');
-        $failoTurinys = $failoSistema->getFailoTurinys();
-        foreach ($asmuo as $key => $item) {
-            $failoTurinys = str_replace("{{" . $key . "}}", $item ?? 'NULL', $failoTurinys);
+        /** @var FS $fs */
+        $fs = App::resolve(FS::class);
+        $fs->setFile('../src/html/person/person_row.html');
+        $fileContent = $fs->getFileContent();
+        foreach ($person as $key => $item) {
+            $fileContent = str_replace("{{" . $key . "}}", $item ?? 'NULL', $fileContent);
         }
 
-        return $failoTurinys;
+        return $fileContent;
     }
 
     /**

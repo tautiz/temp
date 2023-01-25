@@ -6,7 +6,7 @@ class Configs
 {
     public array $configs = [
         'db' => [
-            'hostmane' => '172.20.0.1',
+            'hostmane' => 'db',
             'dbname' => 'akademija',
             'username' => 'devuser',
             'password' => 'devpass',

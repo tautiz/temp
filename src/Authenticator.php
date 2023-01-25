@@ -23,8 +23,7 @@ class Authenticator
      */
     public function login(string $checkUser, string $checkPass): bool
     {
-        $conf = new Configs();
-        $db = new Database($conf);
+        $db = App::resolve(Database::class);
 
         $login = $db->query(
             'SELECT * FROM `users` where `name` = :name AND password = :pass AND state = 2',

@@ -13,4 +13,14 @@ class Request
     {
         return $this->all()[$string] ?? $default;
     }
+
+    public function getMethod()
+    {
+        return $_SERVER['REQUEST_METHOD'];
+    }
+
+    public function getUrl()
+    {
+        return $_SERVER['REQUEST_URI'];
+    }
 }

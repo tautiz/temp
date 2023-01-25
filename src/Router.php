@@ -4,6 +4,7 @@ namespace Appsas;
 
 use Appsas\Exceptions\PageNotFoundException;
 use Appsas\Request;
+use Exception;
 
 class Router
 {
@@ -39,25 +40,21 @@ class Router
 
     /**
      * @throws PageNotFoundException
+     * @throws Exception
      */
-    public function run(): void
+    public function dispatch(Request $request)
     {
-        // Iš $_SERVER paimame užklausos metodą ir URL adresą
-        $method = $_SERVER['REQUEST_METHOD'];
-        $url = $_SERVER['REQUEST_URI'];
+        $method = $request->getMethod();
+        $url = $request->getUrl();
         $url = explode('?', $url)[0];
         $url = rtrim($url, '/');
         $url = ltrim($url, '/');
 
-        // Tikriname ar yra toks URL adresas ir metodas sukurtas mūsų $this->routes masyve
         if (isset($this->routes[$method][$url])) {
-            // Iš $this->routes masyvo paimame controller klasės pavadinimą ir metodą
             $controllerData = $this->routes[$method][$url];
             $controller = $controllerData[0];
             $action = $controllerData[1];
 
-            // Iškviečiamas kontrolierio ($controller) objektas ir kviečiamas jo metodas ($action)
-            $request = new Request();
             $response = $controller->$action($request);
 
             if($response instanceof Response && $response->redirect) {
@@ -67,15 +64,10 @@ class Router
             }
 
             if (!$response instanceof Response) {
-                throw new \Exception("Controllerio $controller metodas '$action' turi grąžinti Response objektą");
+                throw new Exception("Controllerio $controller metodas '$action' turi grąžinti Response objektą");
             }
 
-            // Iškviečiamas Render klasės objektas ir jo metodas setContent()
-            $render = new HtmlRender($this->output);
-            $render->setContent($response->content);
-
-            // Spausdinam viska kas buvo 'Storinta' Output klaseje
-            $this->output->print();
+            return $response;
         } else {
             throw new PageNotFoundException("Adresas: [$method] /$url nerastas");
         }
